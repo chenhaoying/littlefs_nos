@@ -59,6 +59,37 @@ int remove_not_date_file(void)
     return 0;
 }
 
+int remove_future_file(int date)
+{
+    int future_date, temp_date, file_num;
+    future_date = 0;
+    file_num = 0;
+    data_dir = littlefs->dir->open(data_rec.property->data_dir);
+    littlefs->dir->rewind(data_dir);
+    while(littlefs->dir->read(data_dir, &data_dir_info))
+    {
+        if(strcmp(data_dir_info.name, ".") == 0) continue;
+        if(strcmp(data_dir_info.name, "..") == 0) continue;
+        sscanf(data_dir_info.name, "%d", &temp_date);
+        if(temp_date <= date) 
+        {
+            file_num ++;
+            continue;
+        }
+        if((future_date == 0)||(future_date > temp_date)) future_date = temp_date;
+        file_num ++;    // 计算文件总数
+    }
+    littlefs->dir->close(data_dir);
+    DEBUG("remove_future_file: file_num = %d\n", file_num);
+    if((file_num<=data_rec.property->rec_file_limit)||(data_rec.property->rec_file_limit==0)) return 0;  // 文件数少于记录文件数限制
+    if(future_date == 0) return 0;
+    memset(file_name, 0, sizeof(file_name));
+    sprintf(file_name, "%s/%06d", data_rec.property->data_dir, future_date);
+    DEBUG("remove_future_file: remove file: %s\n", file_name);
+    littlefs->remove(file_name); // 删除一个最旧的记录
+    return -1;
+}
+
 int remove_older_file(void)
 {
     int older_date, temp_date, file_num;
@@ -77,7 +108,6 @@ int remove_older_file(void)
     littlefs->dir->close(data_dir);
     DEBUG("remove_older_file: file_num = %d\n", file_num);
     if((file_num<=data_rec.property->rec_file_limit)||(data_rec.property->rec_file_limit==0)) return 0;  // 文件数少于记录文件数限制
-    file_num --;
     memset(file_name, 0, sizeof(file_name));
     sprintf(file_name, "%s/%06d", data_rec.property->data_dir, older_date);
     DEBUG("remove_older_file: remove file: %s\n", file_name);
@@ -134,6 +164,7 @@ int data_record_write(void *pbuf, int offset, int date)
         data_file = littlefs->file->open(file_name, LFS_O_RDWR|LFS_O_CREAT);
         littlefs->file->close(data_file);
         while(remove_not_date_file());  // 删除所有非日期命名yymmdd的文件
+        while(remove_future_file(date));    // 删除文件名时间属于未来的并且是最旧的记录
         while(remove_older_file()); // 删除旧记录，直到少于或等于设定的文件记录限制数量
         sprintf(file_name, "%s/%06d", data_rec.property->data_dir, date);
         data_file = littlefs->file->open(file_name, LFS_O_RDWR);

@@ -67,6 +67,7 @@ typedef struct data_rec_s
 } data_rec_t;
 
 extern data_rec_t data_rec;
+int filesystem_init(void);
 #ifdef __cplusplus
 }
 #endif
