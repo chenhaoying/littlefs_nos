@@ -10,7 +10,7 @@ int file_size;
 lfs_dir_t *data_dir;
 struct lfs_info data_dir_info;
 #if 0
-#define DEBUG(format,...) printf(""format"", ##__VA_ARGS__) 
+#define DEBUG(format,...) printf(""format"", ##__VA_ARGS__)
 #else
 #define DEBUG(...)
 #endif
@@ -19,7 +19,7 @@ int data_record_read(void *pbuf, int offset, int date);
 int data_record_nblocks_read(void *pbuf, int offset, int date, int nblocks);
 int data_record_clear(void);
 int data_record_tree(char *pbuf, int buf_size);
-data_rec_t data_rec = 
+data_rec_t data_rec =
 {
     .write = data_record_write,
     .read = data_record_read,
@@ -71,7 +71,7 @@ int remove_future_file(int date)
         if(strcmp(data_dir_info.name, ".") == 0) continue;
         if(strcmp(data_dir_info.name, "..") == 0) continue;
         sscanf(data_dir_info.name, "%d", &temp_date);
-        if(temp_date <= date) 
+        if(temp_date <= date)
         {
             file_num ++;
             continue;
@@ -187,11 +187,11 @@ int data_record_write(void *pbuf, int offset, int date)
                         return -1;
                     }
                 }
-                else 
+                else
                 {
                     if((write_pos - file_size) > sizeof(dummy_data))
                         write_size = sizeof(dummy_data);
-                    else 
+                    else
                         write_size = write_pos - file_size;
                     if(littlefs->file->write(&dummy_data, write_size, data_file) != write_size)
                     {
@@ -268,6 +268,8 @@ int data_record_nblocks_read(void *pbuf, int offset, int date, int nblocks)
 {
     int i;
     int read_pos, read_size;
+    unsigned char *pchar;
+    pchar = (unsigned char *)pbuf;
     read_size = data_rec.property->bytes_of_data;
     read_pos = offset * read_size;
     memset(file_name, 0, sizeof(file_name));
@@ -282,11 +284,11 @@ int data_record_nblocks_read(void *pbuf, int offset, int date, int nblocks)
         {
             for(i=0;i<nblocks;i++)
             {
-                memcpy(pbuf, data_rec.property->invaild_data, read_size);
-                pbuf += read_size;
+                memcpy(pchar, data_rec.property->invaild_data, read_size);
+                pchar += read_size;
             }
         }
-        else memset(pbuf, 0, read_size * nblocks);
+        else memset(pchar, 0, read_size * nblocks);
         return -1;
     }
     littlefs->file->seek(data_file, 0, LFS_SEEK_END);
@@ -300,25 +302,25 @@ int data_record_nblocks_read(void *pbuf, int offset, int date, int nblocks)
         {
             for(i=0;i<nblocks;i++)
             {
-                memcpy(pbuf, data_rec.property->invaild_data, read_size);
-                pbuf += read_size;
+                memcpy(pchar, data_rec.property->invaild_data, read_size);
+                pchar += read_size;
             }
         }
-        else memset(pbuf, 0, read_size * nblocks);
+        else memset(pchar, 0, read_size * nblocks);
         return -1;
     }
     littlefs->file->seek(data_file, read_pos, LFS_SEEK_SET);
     for(i=0;i<nblocks;i++)
     {
-        if(littlefs->file->read(pbuf, read_size, data_file)!=read_size)
+        if(littlefs->file->read(pchar, read_size, data_file)!=read_size)
         {
             DEBUG("data_record_nblocks_read: read data fail.\n");
             if(data_rec.property->invaild_data)
-                memcpy(pbuf, data_rec.property->invaild_data, read_size);
-            else 
-                memset(pbuf, 0, read_size);
+                memcpy(pchar, data_rec.property->invaild_data, read_size);
+            else
+                memset(pchar, 0, read_size);
         }
-        pbuf += read_size;
+        pchar += read_size;
     }
     littlefs->file->close(data_file);
     return 0;

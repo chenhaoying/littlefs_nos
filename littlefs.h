@@ -29,13 +29,13 @@ typedef struct lfs_dir_fun_s
     int (*seek)(lfs_dir_t *dir, int offset);
 } lfs_dir_fun_t;
 
-typedef struct littlefs_s 
+typedef struct littlefs_s
 {
     lfs_t *lfs;
 
     lfs_file_fun_t *file;
     lfs_dir_fun_t *dir;
-    
+
     int (*format)(lfs_t *_lfs, const struct lfs_config *_cfg);
     int (*mount)(lfs_t *_lfs, const struct lfs_config *_cfg);
     int (*unmount)(lfs_t *_lfs);
@@ -45,10 +45,10 @@ typedef struct littlefs_s
     int (*tree)(const char *dir_path, char *pbuf, int buf_size);
 } littlefs_t;
 
-littlefs_t *littlefs;
+extern littlefs_t *littlefs;
 int littlefs_init(littlefs_t *lfs_obj, struct lfs_config *config, struct lfs_file_config *file_config);
 
-typedef struct rec_property_s 
+typedef struct rec_property_s
 {
     char *data_dir;
     void *invaild_data; // default 0
